@@ -1,7 +1,14 @@
 const express = require('express');
+const dotenv = require('dotenv');
+dotenv.config({ path: './config/.env' });
 const connectDB = require('./config/db');
-
 const app = express();
+const swaggerUi = require('swagger-ui-express');
+const YAML = require('yamljs');
+const swaggerDocument = YAML.load('./openapi.yaml');
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 
 // Connect to MongoDB
 connectDB();
@@ -10,24 +17,15 @@ connectDB();
 app.use(express.json());
 const Product = require('./model/product');
 
-app.get('/test-product', async (req, res) => {
-  try {
-    const product = await Product.create({
-      name: 'Test Item',
-      sku: 'TST-002',
-      costprice: 100,
-      sellprice: 150
-    });
-    res.json(product);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
-
 // Routes
 app.get('/', (req, res) => {
   res.send("Server is running");
 });
+app.use('/api/user',require('./routes/userRoutes'));
+app.use('/api/sale',require('./routes/saleRoutes'));
+app.use('/api/purchase',require('./routes/purchaseRoutes'));
+app.use('/api/products', require('./routes/productRoutes'));
+app.use('/api/auth', require('./routes/authRoutes'));
 
 // Start server
 const PORT = 5000;
